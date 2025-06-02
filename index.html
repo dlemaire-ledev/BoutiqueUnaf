@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commande Articles Promotionnels UNAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .item-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .item-card:hover {
+            /* transform: translateY(-5px); // Optionnel, peut rendre l'interaction un peu chargée */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .message-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            max-width: 300px;
+        }
+        .message-popup.success {
+            background-color: #28a745; /* Vert */
+        }
+        .message-popup.error {
+            background-color: #dc3545; /* Rouge */
+        }
+        .message-popup.show {
+            opacity: 1;
+        }
+        .size-quantity-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Espace réduit entre taille et quantité */
+        }
+        .size-quantity-row label {
+            white-space: nowrap;
+        }
+         .size-quantity-row input[type="number"] {
+            width: 70px; /* Largeur fixe pour le champ quantité */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-4 sm:p-8 max-w-4xl">
+        <header class="bg-blue-600 text-white p-6 rounded-lg shadow-md mb-8">
+            <h1 class="text-3xl font-bold text-center">UNAF - Commande d'Articles Promotionnels</h1>
+        </header>
+
+        <div id="messagePopup" class="message-popup"></div>
+
+        <form id="orderForm" class="space-y-8">
+
+            <section class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600 border-b pb-2">Informations de la Section</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="sectionName" class="block text-sm font-medium text-gray-700 mb-1">Nom de la Section :</label>
+                        <input type="text" id="sectionName" name="sectionName" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-1">Numéro de Téléphone du Contact :</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Nom du Contact :</label>
+                        <input type="text" id="lastName" name="lastName" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">Prénom du Contact :</label>
+                        <input type="text" id="firstName" name="firstName" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="postalAddress" class="block text-sm font-medium text-gray-700 mb-1">Adresse Postale Complète :</label>
+                        <textarea id="postalAddress" name="postalAddress" rows="3" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                     <div class="md:col-span-2">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Adresse Email du Contact (pour le récapitulatif) :</label>
+                        <input type="email" id="email" name="email" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600 border-b pb-2">Sélection des Articles</h2>
+                <div id="articlesList" class="space-y-6">
+                    </div>
+            </section>
+
+            <div class="text-center pt-6">
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+                    Envoyer la Commande
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Données des articles (normalement issues d'Airtable)
+        const articles = [
+            {
+                id: "casquette_bleue",
+                nom: "Casquette UNAF Bleue",
+                description: "Casquette ajustable avec logo UNAF brodé.",
+                tailles: ["Unique"],
+                visuel: "https://placehold.co/300x200/3498db/ffffff?text=Casquette+UNAF"
+            },
+            {
+                id: "fanion_unaf",
+                nom: "Fanion UNAF",
+                description: "Fanion triangulaire aux couleurs de l'UNAF.",
+                tailles: ["Unique"],
+                visuel: "https://placehold.co/300x200/2ecc71/ffffff?text=Fanion+UNAF"
+            },
+            {
+                id: "polo_blanc",
+                nom: "Polo UNAF Blanc",
+                description: "Polo en coton avec logo UNAF.",
+                tailles: ["S", "M", "L", "XL", "XXL"],
+                visuel: "https://placehold.co/300x200/ecf0f1/34495e?text=Polo+UNAF"
+            },
+            {
+                id: "sweat_gris",
+                nom: "Sweat à Capuche UNAF Gris",
+                description: "Sweat confortable avec capuche et logo UNAF.",
+                tailles: ["S", "M", "L", "XL"],
+                visuel: "https://placehold.co/300x200/95a5a6/ffffff?text=Sweat+UNAF"
+            }
+        ];
+
+        const articlesListDiv = document.getElementById('articlesList');
+
+        articles.forEach(article => {
+            const articleDiv = document.createElement('div');
+            articleDiv.className = 'item-card bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200';
+            
+            let taillesHtml = '<div class="space-y-2 mt-2">';
+            if (article.tailles.length === 1 && article.tailles[0] === "Unique") {
+                // Cas d'un article à taille unique (ou sans taille spécifiée comme "Unique")
+                taillesHtml += `
+                    <div class="size-quantity-row">
+                        <label for="quantite_${article.id}_Unique" class="block text-sm font-medium text-gray-700 mr-2">Quantité :</label>
+                        <input type="number" id="quantite_${article.id}_Unique" name="quantite_${article.id}_Unique" min="0" value="0" class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                `;
+            } else {
+                // Cas d'un article avec plusieurs tailles
+                article.tailles.forEach(taille => {
+                    taillesHtml += `
+                        <div class="size-quantity-row items-center">
+                            <label for="quantite_${article.id}_${taille}" class="block text-sm font-medium text-gray-700 w-16">Taille ${taille} :</label>
+                            <input type="number" id="quantite_${article.id}_${taille}" name="quantite_${article.id}_${taille}" min="0" value="0" class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    `;
+                });
+            }
+            taillesHtml += '</div>';
+
+            articleDiv.innerHTML = `
+                <div class="flex flex-col sm:flex-row gap-4 items-start">
+                    <img src="${article.visuel}" alt="Image de ${article.nom}" class="w-full sm:w-40 h-auto object-cover rounded-md shadow aspect-video sm:aspect-square" onerror="this.onerror=null;this.src='https://placehold.co/160x160/cccccc/ffffff?text=Image+Indisponible';">
+                    <div class="flex-grow">
+                        <h3 class="text-lg font-semibold text-blue-700">${article.nom}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${article.description}</p>
+                        ${taillesHtml}
+                    </div>
+                </div>
+            `;
+            articlesListDiv.appendChild(articleDiv);
+        });
+
+        const orderForm = document.getElementById('orderForm');
+        const messagePopup = document.getElementById('messagePopup');
+
+        function showMessage(message, type = 'success') {
+            messagePopup.textContent = message;
+            messagePopup.className = `message-popup ${type} show`;
+            setTimeout(() => {
+                messagePopup.classList.remove('show');
+            }, 5000);
+        }
+
+        orderForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            showMessage("Traitement de votre commande...", "success");
+
+            const formData = new FormData(orderForm);
+            const contactInfo = {
+                sectionName: formData.get('sectionName'),
+                phoneNumber: formData.get('phoneNumber'),
+                lastName: formData.get('lastName'),
+                firstName: formData.get('firstName'),
+                postalAddress: formData.get('postalAddress'),
+                email: formData.get('email')
+            };
+
+            const selectedArticles = [];
+            articles.forEach(article => {
+                article.tailles.forEach(taille => {
+                    // Le nom du champ est maintenant "quantite_IDARTICLE_TAILLE"
+                    const quantity = parseInt(formData.get(`quantite_${article.id}_${taille}`), 10);
+                    if (quantity > 0) {
+                        selectedArticles.push({
+                            id: article.id,
+                            nom: article.nom,
+                            taille: taille, // La taille spécifique
+                            quantite: quantity
+                        });
+                    }
+                });
+            });
+
+            if (selectedArticles.length === 0) {
+                showMessage("Veuillez sélectionner au moins un article et spécifier une quantité.", "error");
+                return;
+            }
+
+            const orderData = {
+                contact: contactInfo,
+                articles: selectedArticles, // Contient maintenant une liste d'articles avec leur taille et quantité spécifique
+                dateCommande: new Date().toISOString()
+            };
+            
+            // L'adresse du webhook Make.com a été mise à jour ici
+            const webhookUrl = 'https://hook.eu2.make.com/ufanwvmxr73kkkfirb6pll2yrofjln3f'; 
+            console.log("Données de la commande à envoyer :", JSON.stringify(orderData, null, 2));
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    const result = await response.text(); 
+                    console.log("Réponse de Make.com:", result);
+                    showMessage("Commande envoyée avec succès ! Vous recevrez bientôt un email de confirmation.", "success");
+                    orderForm.reset();
+                } else {
+                    console.error("Erreur lors de l'envoi à Make.com:", response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error("Détail de l'erreur:", errorText);
+                    showMessage(`Erreur lors de l'envoi de la commande: ${response.statusText}. Veuillez réessayer.`, "error");
+                }
+            } catch (error) {
+                console.error("Erreur de connexion ou JavaScript:", error);
+                showMessage("Une erreur s'est produite. Veuillez vérifier votre connexion et réessayer.", "error");
+            }
+        });
+    </script>
+</body>
+</html>
