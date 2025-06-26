@@ -8,9 +8,10 @@
     body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
     th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-    input[type="number"] { width: 60px; }
+    input[type="number"], input[type="text"], input[type="email"] { width: 100%; padding: 6px; box-sizing: border-box; }
+    textarea { width: 100%; padding: 6px; box-sizing: border-box; }
     button { padding: 10px 20px; font-size: 16px; }
-    label { display: block; margin-bottom: 10px; }
+    label { display: block; margin-bottom: 12px; }
   </style>
 </head>
 <body>
@@ -20,6 +21,9 @@
     <label>Nom : <input type="text" id="nom" required /></label>
     <label>Prénom : <input type="text" id="prenom" required /></label>
     <label>Email : <input type="email" id="email" required /></label>
+    <label>Adresse postale :<br>
+      <textarea id="adresse" rows="4" required></textarea>
+    </label>
 
     <table>
       <thead>
@@ -43,7 +47,7 @@
       { id: "casquette_1_noire", nom: "casquette_1_noire", prix: "11.00", taille: "Unique", stock: 6 },
       { id: "teeshirt_1_blanc_S", nom: "teeshirt_1_blanc", prix: "12.00", taille: "S", stock: 6 },
       { id: "teeshirt_1_blanc_M", nom: "teeshirt_1_blanc", prix: "13.00", taille: "M", stock: 6 },
-      { id: "teeshirt_1_blanc_L", nom: "teeshirt_1_blanc", prix: "16.00", taille: "L", stock: 6 },
+      { id: "teeshirt_1_blanc_L", nom: "teeshirt_1_blanc", prix: "16.00", taille: "L", stock: 6 }
     ];
 
     const productList = document.getElementById("productList");
@@ -69,6 +73,7 @@
       const nom = document.getElementById("nom").value;
       const prenom = document.getElementById("prenom").value;
       const email = document.getElementById("email").value;
+      const adresse = document.getElementById("adresse").value;
 
       const lignesCommande = [];
 
@@ -91,6 +96,7 @@
         nom: nom,
         prenom: prenom,
         email: email,
+        adresse: adresse,
         commande: lignesCommande
       };
 
